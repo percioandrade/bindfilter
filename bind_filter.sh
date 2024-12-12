@@ -3,15 +3,24 @@
 # Script Information
 # Author: Percio Andrade - percio.castelo@suporte.m3solutions.com.br
 # Description: Filters known domains in Bind9 to prevent DNS spoofing and DNS hijacking
-# Version: 1.1
+# Version: ${defineVersion()}
 # Last Updated: 2023-06-14
 
 # Define Variables
+SCRIPT_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/bind_filter.sh"
 BIND_CONFIG="/etc/bind/named.conf"
 BLOCKED_ZONE="/etc/bind/zones/blockeddomains.db"
-BLOCKED_ZONE_URL="http://tote.m3solutions.net.br/images/c/c6/Blockeddomains.db"
+BLOCKED_ZONE_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/blockeddomains.db"
 ACL_CONFIG="/etc/bind/blocked_domain_acl.conf"
-ACL_CONFIG_URL="http://tote.m3solutions.net.br/images/1/10/Blocked_domain_acl.conf"
+ACL_CONFIG_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/blocked_domain_acl.conf"
+
+function defineVersion() {
+    SRC_VERSION='1.1'
+}
+
+exit;
+
+# Check version
 
 # Function to log messages
 log_message() {
