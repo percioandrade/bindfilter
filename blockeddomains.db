@@ -1,0 +1,25 @@
+;
+; BIND data file for blockeddomains.db
+;
+; This file is used to block create the DNS zone for common domains in Bind9
+; Please don't touch if you dont know whats going on here
+; Bind9 filtering here https://bind9.readthedocs.io/en/v9.16.20/reference.html
+$TTL    3600
+@       IN      SOA     ns01.HOSTNAME.local. root.HOSTNAME.local. (
+                            2014052101         ; Serial
+                                  7200         ; Refresh
+                                   120         ; Retry
+                               2419200         ; Expire
+                                  3600)        ; Default TTL
+;
+                A       127.0.0.1 ; localhost
+*       IN      A       127.0.0.1 ; localhost
+;                AAAA    ::1 ; IPv6 localhost
+;*       IN      AAAA    ::1 ;  IPv6 localhost
+mail    IN      A       127.0.0.1
+ftp     IN      A       127.0.0.1
+webmail IN      A       127.0.0.1
+panel   IN      A       127.0.0.1
+www     IN      A       127.0.0.1
+;ns1    IN      A       127.0.0.1
+;ns2    IN      A       127.0.0.1
