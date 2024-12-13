@@ -12,14 +12,17 @@ $TTL    3600
                                2419200         ; Expire
                                   3600)        ; Default TTL
 ;
+@       IN      NS      ns1.HOSTNAME.local.  ; Definição do primeiro servidor NS
+@       IN      NS      ns2.HOSTNAME.local.  ; Definição do segundo servidor NS
+;
                 A       127.0.0.1 ; localhost
 *       IN      A       127.0.0.1 ; localhost
 ;                AAAA    ::1 ; IPv6 localhost
-;*       IN      AAAA    ::1 ;  IPv6 localhost
+;*       IN      AAAA    ::1 ; IPv6 localhost
 mail    IN      A       127.0.0.1
 ftp     IN      A       127.0.0.1
 webmail IN      A       127.0.0.1
 panel   IN      A       127.0.0.1
 www     IN      A       127.0.0.1
-;ns1    IN      A       127.0.0.1
-;ns2    IN      A       127.0.0.1
+ns1     IN      A       127.0.0.1
+ns2     IN      A       127.0.0.1
