@@ -29,6 +29,10 @@ LOG_INCLUDE_EXISTS="Include line already exists in $BIND_CONFIG"
 LOG_UPDATE_FILES="Updating files..."
 LOG_INSTALL_BIND="Do you want to install bind? (yY/nN)"
 LOG_BIND_FOUND="Bind9 found. Continuing..."
+LOG_PACKAGE_MANAGER="Unsupported package manager. Please install $package manually."
+LOG_CREATING_DIR="Creating directory $dir..."
+LOG_DOWNLOAD_COMPLETE="Download complete."
+LOG_FAILED_INCLUDE="Failed to add include line to $BIND_CONFIG"
 
 # Check if script is run as root
 checkRoot() {
@@ -84,7 +88,7 @@ checkBindInstalled() {
         elif command -v yum >/dev/null; then
             yum install -y "$package"
         else
-            logError "Unsupported package manager. Please install $package manually."
+            logError "$LOG_PACKAGE_MANAGER"
             exit 1
         fi
     fi
@@ -95,7 +99,7 @@ checkBindInstalled() {
 checkDirExists() {
     local dir="/etc/bind/zones/"
     if [[ ! -d "$dir" ]]; then
-        logMessage "Creating directory $dir..."
+        logMessage "$LOG_CREATING_DIR..."
         mkdir -p "$dir" || {
             logError "$LOG_FILES_NOT_CREATED $dir"
             exit 1
@@ -133,12 +137,13 @@ downloadBlockedZone() {
     }
 }
 
+# Download ACL
 downloadACLConfig(){
     curl -s -o "$ACL_CONFIG" "$ACL_CONFIG_URL" || {
         logError "$LOG_FAILED_DOWNLOAD $ACL_CONFIG"
         exit 1
     }
-    logMessage "Download complete."
+    logMessage "$LOG_DOWNLOAD_COMPLETE"
 }
 
 # Add Include Line
@@ -146,7 +151,7 @@ addIncludeLine() {
     if ! checkLineExists; then
         logMessage "$LOG_ADDING_INCLUDE"
         echo "include \"$ACL_CONFIG\";" >> "$BIND_CONFIG" || {
-            logError "Failed to add include line to $BIND_CONFIG"
+            logError "$LOG_FAILED_INCLUDE"
             exit 1
         }
     else
@@ -165,6 +170,7 @@ restartNamed() {
     fi
 }
 
+# Parse
 parseArgs() {
     while getopts "ru:a:lch" opt; do
         case "$opt" in
