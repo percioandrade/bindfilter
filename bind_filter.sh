@@ -1,5 +1,5 @@
 #!/bin/bash
-# Author: Percio Andrade - percio.castelo@suporte.m3solutions.com.br
+# Author: Percio Andrade - percio@zendev.com.br
 # Description: Filters known domains in Bind9 to prevent DNS spoofing and DNS hijacking
 
 # Define Variables
