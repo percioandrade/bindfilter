@@ -3,21 +3,22 @@
 # Description: Filters known domains in Bind9 to prevent DNS spoofing and DNS hijacking
 
 # Define Variables
-SCRIPT_SRC_VERSION="1.1"
+SCRIPT_SRC_VERSION="1.2"
 SCRIPT_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/bind_filter.sh"
 BLOCKED_ZONE="/etc/bind/zones/blockeddomains.db"
 BLOCKED_ZONE_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/blockeddomains.db"
 ACL_CONFIG="/etc/bind/blocked_domain_acl.conf"
 ACL_CONFIG_URL="https://raw.githubusercontent.com/percioandrade/bindfilter/refs/heads/main/blocked_domain_acl.conf"
 OS_VERSION=$(grep '^NAME=' /etc/os-release | cut -d'"' -f2)
+REMOTE_VERSION=$(curl -s "$SCRIPT_URL" | grep -o 'SCRIPT_SRC_VERSION="[^"]*"' | awk -F'"' '{print $2}')
 
 # text
 LOG_NOT_ROOT="This script must be run as root."
 ERROR_BIND_NOT_INSTALLED="Bind9 is not installed. Please install it to proceed."
 LOG_LOCATED_NAMED_CONF="Found named configuration file: $file"
 LOG_NOT_LOCATED_NAMED_CONF="Named configuration file not found."
-LOG_VERSION_OUTDATED="Local version ($SRC_VERSION) is outdated. Remote version: $REMOTE_VERSION."
-LOG_VERSION_UPDATED="Script is up-to-date (version: $SRC_VERSION)."
+LOG_VERSION_OUTDATED="Local version ($SCRIPT_SRC_VERSION) is outdated. Remote version: ($REMOTE_VERSION)."
+LOG_VERSION_UPDATED="Script is up-to-date (version: $SCRIPT_SRC_VERSION)."
 LOG_FILES_NOT_FOUND="Files not found:"
 LOG_FILES_NOT_CREATED="Failed to create directory"
 LOG_FAILED_DOWNLOAD="Failed to download"
@@ -25,8 +26,10 @@ LOG_RESTART_NAMED="Restarting named service..."
 LOG_RESTART_SUCCESS="Named service restarted successfully."
 LOG_RESTART_FAILED="Failed to restart named service."
 LOG_ADDING_INCLUDE="Adding include line for ACL configuration..."
-LOG_INCLUDE_EXISTS="Include line already exists in $BIND_CONFIG"
+LOG_INCLUDE_EXISTS="Include line already exists"
 LOG_UPDATE_FILES="Updating files..."
+LOG_UPDATE_FILES_ZONES="Zone file downloader"
+LOG_UPDATE_FILES_ACL="ACL file downloader"
 LOG_INSTALL_BIND="Do you want to install bind? (yY/nN)"
 LOG_BIND_FOUND="Bind9 found. Continuing..."
 LOG_PACKAGE_MANAGER="Unsupported package manager. Please install $package manually."
@@ -42,6 +45,14 @@ checkRoot() {
     fi
 }
 
+defineVersion() {
+    if [[ "$SCRIPT_SRC_VERSION" != "$REMOTE_VERSION" ]]; then
+        echo "$LOG_VERSION_OUTDATED"
+    else
+        echo "$LOG_VERSION_UPDATED"
+    fi
+}
+
 # Check Named Configuration File
 checkNamedFile() {
     local files=("/etc/bind/named.conf" "/etc/named.conf")
@@ -54,16 +65,6 @@ checkNamedFile() {
     done
     logError "$LOG_NOT_LOCATED_NAMED_CONF"
     exit 1
-}
-
-defineVersion() {
-    local REMOTE_VERSION
-    REMOTE_VERSION=$(curl -s "$SCRIPT_URL" | grep "SRC_VERSION=" | awk -F'"' '{print $2}')
-    if [[ "$SRC_VERSION" != "$REMOTE_VERSION" ]]; then
-        echo "$LOG_VERSION_OUTDATED"
-    else
-        echo "$LOG_VERSION_UPDATED"
-    fi
 }
 
 # Function to log messages
@@ -114,13 +115,13 @@ checkLineExists() {
 
 # Check File Existence
 checkFilesExist() {
-    local missing_files=()
-    [[ ! -f "$BLOCKED_ZONE" ]] && missing_files+=("$BLOCKED_ZONE")
-    [[ ! -f "$ACL_CONFIG" ]] && missing_files+=("$ACL_CONFIG")
+    local MISSING_FILES=()
+    [[ ! -f "$BLOCKED_ZONE" ]] && MISSING_FILES+=("$BLOCKED_ZONE")
+    [[ ! -f "$ACL_CONFIG" ]] && MISSING_FILES+=("$ACL_CONFIG")
 
-    if [[ ${#missing_files[@]} -gt 0 ]]; then
+    if [[ ${#MISSING_FILES[@]} -gt 0 ]]; then
         logMessage "$LOG_FILES_NOT_FOUND"
-        for file in "${missing_files[@]}"; do
+        for file in "${MISSING_FILES[@]}"; do
             logMessage "  - $file"
         done
         return 1
@@ -171,17 +172,58 @@ restartNamed() {
 }
 
 # Parse
+# Parse
 parseArgs() {
     while getopts "ru:a:lch" opt; do
         case "$opt" in
-            r) ACTION="run" ;;
-            u) ACTION="update"; TARGET="$OPTARG" ;;
-            c) ACTION="check" ;;
+            r) ACTION="run"
+                checkNamedFile
+                checkBindInstalled
+                checkDirExists
+                checkLineExists
+                checkFilesExist
+                downloadBlockedZone
+                downloadACLConfig
+                addIncludeLine
+                restartNamed
+            ;;
+            u) ACTION="update"; TARGET="$OPTARG" 
+                # Check if -z or -a is passed after -u
+                case "$TARGET" in
+                    -z) logMessage "$LOG_UPDATE_FILES_ZONES"
+                        downloadBlockedZone
+                    ;;
+                    -a) 
+                        logMessage "$LOG_UPDATE_FILES_ACL"
+                        downloadACLConfig
+                    ;;
+                    --all) 
+                        logMessage "$LOG_UPDATE_FILES_ZONES"
+                        downloadBlockedZone
+                        logMessage "$LOG_UPDATE_FILES_ACL"
+                        downloadACLConfig
+                    ;;
+                    *) 
+                        echo "Invalid target for update: $TARGET"
+                        showHelp
+                        exit 1
+                    ;;
+                esac
+            ;;
+            c) ACTION="check"
+                checkNamedFile
+                checkBindInstalled
+                checkDirExists
+                checkLineExists
+                checkFilesExist
+                addIncludeLine
+            ;;
             h) showHelp; exit 0 ;;
             *) logError "Invalid option"; showHelp; exit 1 ;;
         esac
     done
 }
+
 
 # Show help message
 showHelp() {
@@ -207,7 +249,6 @@ EOF
 # Main Function
 main() {
     checkRoot
-    checkNamedFile
     if [[ $# -eq 0 ]]; then
         showHelp
         exit 0
