@@ -1,6 +1,31 @@
 #!/bin/bash
 # Author: Percio Andrade - percio@zendev.com.br|perciocastelo@gmail.com
-# Description: Filters known domains in Bind9 to prevent DNS spoofing and DNS hijacking
+# 
+# Description:
+#   Script to filter known domains in Bind9 to prevent 
+#   DNS spoofing and DNS hijacking.
+#
+# Features:
+#   - Bind9 installation and verification
+#   - Download and update of blocked zones
+#   - ACL configuration for blocking
+#   - Automatic restart of named service
+#
+# Usage:
+#   -r, --run             Run script to apply DNS filters
+#   -u, --update [TARGET] Update files. Targets:
+#                         all   - Update all files
+#                         zone  - Update blocked DNS zones
+#                         acl   - Update ACL configuration
+#   -c, --check          Check if Bind is properly configured
+#   -h, --help           Show this help message
+#
+# Examples:
+#   ./bind_filter.sh -r                Run the script
+#   ./bind_filter.sh -u all            Update all files
+#   ./bind_filter.sh -c                Check Bind installation
+#
+# Version: 1.2
 
 # Define Variables
 SCRIPT_SRC_VERSION="1.2"
@@ -172,7 +197,6 @@ restartNamed() {
 }
 
 # Parse
-# Parse
 parseArgs() {
     while getopts "ru:a:lch" opt; do
         case "$opt" in
@@ -223,7 +247,6 @@ parseArgs() {
         esac
     done
 }
-
 
 # Show help message
 showHelp() {
