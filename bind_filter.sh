@@ -1,5 +1,5 @@
 #!/bin/bash
-# Author: Percio Andrade - percio@zendev.com.br|perciocastelo@gmail.com
+# Author: Percio Andrade - percio@zendev.com.br
 # 
 # Description:
 #   Script to filter known domains in Bind9 to prevent 
@@ -24,8 +24,6 @@
 #   ./bind_filter.sh -r                Run the script
 #   ./bind_filter.sh -u all            Update all files
 #   ./bind_filter.sh -c                Check Bind installation
-#
-# Version: 1.2
 
 # Define Variables
 SCRIPT_SRC_VERSION="1.2"

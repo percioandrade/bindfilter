@@ -208,6 +208,5 @@ Se você encontrar problemas:
 
 ---
 
-## Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+# License 📄
+This project is licensed under the GNU General Public License v2.0
